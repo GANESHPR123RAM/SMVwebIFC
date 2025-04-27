@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Register - IFC File Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Same styles as Login page */
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background-color: #333;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      transition: background-color 0.3s;
+    }
+
+    .nav-links a:hover {
+      background-color: #555;
+      border-radius: 5px;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 5px;
+    }
+
+    .hamburger div {
+      width: 25px;
+      height: 3px;
+      background: white;
+    }
+
+    @media (max-width: 600px) {
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        background-color: #333;
+        position: absolute;
+        top: 70px;
+        right: 20px;
+        width: 150px;
+        border-radius: 5px;
+      }
+
+      .nav-links a {
+        padding: 1rem;
+        border-top: 1px solid #444;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+    }
+
+    .nav-links.active {
+      display: flex;
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      background-color: #f9f9f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    .form-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .form-content h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    #submitBtn {
+      background-color: #1d4ed8;
+      color: white;
+      padding: 0.8rem;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #submitBtn:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">
+      <h1>IFC File Viewer</h1>
+    </div>
+    <div class="hamburger" id="hamburger">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="nav-links" id="nav-links">
+      <a href="/">Home</a>
+      <a href="./register.html">Register</a>
+      <a href="./login.html">Login</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main style="display: flex; flex-direction: column; ">
+
+      <div class="form-box">
+        <div class="form-content">
+          <h1>Create an account</h1>
+          <form id="registerForm">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Your email</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone No.</label>
+              <input type="tel" id="phone" name="phone" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" id="submitBtn">Create an account</button>
+          </form>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
+        Already have an account?
+        <a href="./login.html" style="color: #1d4ed8; text-decoration: underline;">Login here</a>
+      </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    &copy; 2025 IFC Viewer. All rights reserved.
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('nav-links');
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = {
+        username: document.getElementById('username').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        password: document.getElementById('password').value.trim(),
+      };
+      try {
+        const response = await fetch('http://localhost:3000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        });
+        if (response.ok) {
+          const res_data = await response.json();
+          localStorage.setItem('token', res_data.token);
+          alert("Registration successful!");
+          window.location.href = "/";
+        } else {
+          const errorData = await response.json();
+          console.error('Error:', errorData);
+          alert("Already registered with this email!");
+        }
+      } catch (error) {
+        console.error("Register error:", error);
+      }
+      e.target.reset();
+    });
+  </script>
+
+</body>
+
+</html>
