@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFC Viewer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="icon" type="image/x-icon" href="https://thatopen.github.io/engine_components/resources/favicon.ico">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+
+        .full-screen {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Navbar Styles */
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: #555;
+            border-radius: 5px;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background: white;
+        }
+
+        @media (max-width: 600px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                background-color: #333;
+                position: absolute;
+                top: 70px;
+                right: 20px;
+                width: 150px;
+                border-radius: 5px;
+            }
+
+            .nav-links a {
+                padding: 1rem;
+                border-top: 1px solid #444;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        .nav-links.active {
+            display: flex;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        /* Add styles for the panel and button */
+        .phone-menu-toggler {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .options-menu {
+            position: absolute;
+            top: 70px;
+            /* Move below navbar */
+            right: 20px;
+            width: 300px;
+            max-height: calc(100vh - 70px);
+            /* So it doesn't go below screen */
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            overflow-y: auto;
+            z-index: 50;
+            border-radius: 8px;
+        }
+
+
+        .options-menu-visible {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">
+            <h1>IFC File Viewer</h1>
+        </div>
+        <div class="hamburger" id="hamburger">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="nav-links" id="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="./IFCViewer.html">IFC</a>
+            <a href="./register.html">Register</a>
+            <a href="./login.html">Login</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="full-screen" id="container"></div>
+
+    <!-- Information panel for loaded model -->
+    <div id="infoPanel"
+        style="position: absolute; top: 104px; left: 5px; padding: 10px; background-color: rgba(0, 0, 0, 0.6); color: white; font-size: 14px; z-index: 10; max-width: 300px; font-family: sans-serif;">
+        <div id="modelName">Name: -</div>
+        <div id="objectCount">Objects: -</div>
+        <div id="categoryList"></div>
+    </div>
+
+    <!-- IFC input (hidden, triggered via button) -->
+    <input type="file" id="ifcInput" style=" display: none;" />
+
+    <!-- Your main script -->
+    <script type="module" src="/src/main.ts"></script>
+
+    <!-- UI panel -->
+    <script type="module">
+        import * as BUI from 'https://unpkg.com/@thatopen/ui?module';
+
+        // Dummy functions — Replace with your real ones from main.ts
+        const loadIfc = () => document.getElementById('ifcInput').click();
+        const exportFragments = () => alert('Exporting Fragments...');
+        const disposeFragments = () => alert('Disposing Fragments...');
+        const toggleVisibilityByCategory = (cat) => alert(`Toggling visibility of ${cat}`);
+        const toggleHoverTooltip = () => alert('Toggling Hover Tooltip');
+
+        BUI.Manager.init();
+
+        // 🎯 Create the Options Menu
+        const panel = BUI.Component.create(() => {
+            return BUI.html`
+        <bim-panel active label="IFC Viewer" class="options-menu">
+          <bim-panel-section collapsed label="Controls">
+            <bim-panel-section style="padding-top: 12px;">
+              <bim-button label="Load IFC" @click="${() => loadIfc()}"></bim-button>  
+              <bim-button label="Export Fragments" @click="${() => exportFragments()}"></bim-button>  
+              <bim-button label="Dispose Fragments" @click="${() => disposeFragments()}"></bim-button>
+              <bim-button label="Toggle Roof Visibility" @click="${() => toggleVisibilityByCategory('IFCROOF')}"></bim-button>
+              <bim-button label="Toggle Wall Visibility" @click="${() => toggleVisibilityByCategory('IFCWALL')}"></bim-button>
+              <bim-button label="Toggle Slab Visibility" @click="${() => toggleVisibilityByCategory('IFCSLAB')}"></bim-button>
+              <bim-button label="Toggle Hover Tooltip" @click="${() => toggleHoverTooltip()}"></bim-button>
+            </bim-panel-section>
+          </bim-panel-section>
+        </bim-panel>
+      `;
+        });
+        document.body.append(panel);
+
+        // 📱 Create Phone Toggle Button
+        const toggleBtn = BUI.Component.create(() => {
+            return BUI.html`
+        <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
+          @click="${() => {
+                    panel.classList.toggle("options-menu-visible");
+                }}">
+        </bim-button>
+      `;
+        });
+        document.body.append(toggleBtn);
+
+        // Hamburger Menu Functionality
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('nav-links');
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 IFC Viewer. All rights reserved.
+    </footer>
+</body>
+
+</html>
