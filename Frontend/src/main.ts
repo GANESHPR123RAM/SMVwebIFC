@@ -2,32 +2,31 @@ import * as THREE from "three";
 import * as BUI from "@thatopen/ui";
 import Stats from "stats.js/src/Stats";
 import * as OBC from "@thatopen/components";
-import * as WEBIFC from "web-ifc"; // ➡️ For IFC categories
+import * as WEBIFC from "web-ifc";
+import * as FRAGS from "@thatopen/fragments";
 
 async function main() {
   const container = document.getElementById("container")!;
   const components = new OBC.Components();
 
-  // 🌎 Setting up the world
+  // 🌎 Setup world (scene, camera, renderer)
   const worlds = components.get(OBC.Worlds);
   const world = worlds.create<
     OBC.SimpleScene,
     OBC.SimpleCamera,
     OBC.SimpleRenderer
   >();
-
-  // 🎬 Starting the Scene
   world.scene = new OBC.SimpleScene(components);
   world.renderer = new OBC.SimpleRenderer(components, container);
   world.camera = new OBC.SimpleCamera(components);
 
-  await components.init(); // ✅ now inside async main()
+  await components.init();
 
-  // 🏗️ Setup scene
+  // 🔧 Scene configuration
   world.scene.setup();
   world.scene.three.background = null;
 
-  // 📦 Adding cube
+  // 🟪 Add a test cube
   const material = new THREE.MeshLambertMaterial({
     color: "#6528D7",
     transparent: true,
@@ -42,10 +41,10 @@ async function main() {
   cube.rotation.z += Math.PI / 4.2;
   cube.updateMatrixWorld();
 
-  // 🎥 Add camera
+  // 🎥 Set camera position
   world.camera.controls.setLookAt(3, 3, 3, 0, 0, 0);
 
-  // 📊 Add Statistics
+  // 📊 Add FPS statistics
   const stats = new Stats();
   stats.showPanel(2);
   document.body.append(stats.dom);
@@ -54,7 +53,7 @@ async function main() {
   world.renderer.onBeforeUpdate.add(() => stats.begin());
   world.renderer.onAfterUpdate.add(() => stats.end());
 
-  // 🏗️ IFC Loader Setup
+  // 🏗️ IFC Loader setup
   const fragments = components.get(OBC.FragmentsManager);
   const fragmentIfcLoader = components.get(OBC.IfcLoader);
 
@@ -79,7 +78,6 @@ async function main() {
   const fileInput = document.getElementById("ifcInput") as HTMLInputElement;
   let currentModel: THREE.Object3D | null = null;
 
-  // 🆕 Get UI elements for showing info
   const modelNameDiv = document.getElementById("modelName")!;
   const objectCountDiv = document.getElementById("objectCount")!;
   const categoryListDiv = document.getElementById("categoryList")!;
@@ -92,25 +90,22 @@ async function main() {
     const buffer = new Uint8Array(arrayBuffer);
 
     try {
-      // Remove previous model if exists
       if (currentModel) {
         world.scene.three.remove(currentModel);
         fragments.dispose();
       }
 
-      // Load new model
       currentModel = await fragmentIfcLoader.load(buffer);
       currentModel.name = file.name;
+      world.scene.three.children.pop();
       world.scene.three.add(currentModel);
 
       console.log("✅ IFC model loaded:", currentModel);
 
-      // 🆕 Update Information Panel
       modelNameDiv.textContent = `Name: ${file.name}`;
       const objectCount = currentModel.children.length;
       objectCountDiv.textContent = `Objects: ${objectCount}`;
 
-      // 🆕 Get unique IFC Categories in model
       const categories = new Set<string>();
       currentModel.traverse((child) => {
         if ((child as any).ifcCategory) {
@@ -118,7 +113,6 @@ async function main() {
         }
       });
 
-      // Clear and Add to category list
       categoryListDiv.innerHTML = "";
       if (categories.size > 0) {
         categories.forEach((cat) => {
@@ -135,36 +129,84 @@ async function main() {
     }
   });
 
-  // 🎹 Keyboard Controls for Camera Movement
+  // 🎹 Camera control shortcuts
   document.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     const isShift = event.shiftKey;
 
     switch (key) {
       case "x":
-        if (isShift) {
-          world.camera.controls.setLookAt(-10, 0, 0, 0, 0, 0);
-        } else {
-          world.camera.controls.setLookAt(10, 0, 0, 0, 0, 0);
-        }
+        world.camera.controls.setLookAt(isShift ? -10 : 10, 0, 0, 0, 0, 0);
         break;
       case "y":
-        if (isShift) {
-          world.camera.controls.setLookAt(0, -10, 0, 0, 0, 0);
-        } else {
-          world.camera.controls.setLookAt(0, 10, 0, 0, 0, 0);
-        }
+        world.camera.controls.setLookAt(0, isShift ? -10 : 10, 0, 0, 0, 0);
         break;
       case "z":
-        if (isShift) {
-          world.camera.controls.setLookAt(0, 0, -10, 0, 0, 0);
-        } else {
-          world.camera.controls.setLookAt(0, 0, 10, 0, 0, 0);
-        }
+        world.camera.controls.setLookAt(0, 0, isShift ? -10 : 10, 0, 0, 0);
         break;
     }
   });
+
+  // ✨ Custom Hover Tooltip + Color Highlight
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  const tooltip = document.createElement("div");
+  tooltip.style.position = "absolute";
+  tooltip.style.padding = "6px 10px";
+  tooltip.style.pointerEvents = "none";
+  tooltip.style.background = "#111";
+  tooltip.style.color = "white";
+  tooltip.style.borderRadius = "4px";
+  tooltip.style.fontSize = "12px";
+  tooltip.style.display = "none";
+  tooltip.style.zIndex = "10";
+  document.body.appendChild(tooltip);
+
+  let previousMesh: THREE.Mesh | null = null;
+  let previousMaterial: THREE.Material | THREE.Material[] | null = null;
+  
+  container.addEventListener("mousemove", (event) => {
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  
+    raycaster.setFromCamera(mouse, world.camera.three);
+    const intersects = raycaster.intersectObjects(world.scene.three.children, true);
+  
+    if (intersects.length > 0) {
+      const intersect = intersects[0].object as THREE.Mesh;
+      const expressID = intersect.id ?? "N/A";
+      const category = (intersect as any).ifcCategory ?? "Unknown";
+  
+      tooltip.innerText = `ID: ${expressID}\nCategory: ${category}`;
+      tooltip.style.left = `${event.clientX + 10}px`;
+      tooltip.style.top = `${event.clientY + 10}px`;
+      tooltip.style.display = "block";
+  
+      if (previousMesh && previousMaterial) {
+        previousMesh.material = previousMaterial;
+      }
+  
+      previousMesh = intersect;
+      previousMaterial = intersect.material;
+  
+      // Only highlight if it's a single material
+      if (!Array.isArray(intersect.material)) {
+        intersect.material = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+      }
+    } else {
+      tooltip.style.display = "none";
+  
+      if (previousMesh && previousMaterial) {
+        previousMesh.material = previousMaterial;
+        previousMesh = null;
+        previousMaterial = null;
+      }
+    }
+  });
+  
 }
 
-// 🚀 Start the app
+// 🚀 Launch the app
 main();

@@ -178,7 +178,9 @@
         const exportFragments = () => alert('Exporting Fragments...');
         const disposeFragments = () => alert('Disposing Fragments...');
         const toggleVisibilityByCategory = (cat) => alert(`Toggling visibility of ${cat}`);
-        const toggleHoverTooltip = () => alert('Toggling Hover Tooltip');
+        const toggleHoverTooltip = () => {
+            window.hoverTool.active = !window.hoverTool.active;
+        };
 
         BUI.Manager.init();
 
